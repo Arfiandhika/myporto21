@@ -350,7 +350,7 @@ section {
     margin-bottom: 1rem;
 }
 
-.skill-card h3 {
+.skill-card h4 {
     margin-bottom: 0.5rem;
     color: var(--text-color);
 }
@@ -398,7 +398,7 @@ section {
     padding: 2rem;
 }
 
-.project-content h3 {
+.project-content h4 {
     margin-bottom: 1rem;
     color: var(--text-color);
 }
@@ -450,7 +450,7 @@ section {
     align-items: start;
 }
 
-.contact-info h3 {
+.contact-info h4 {
     font-size: 2rem;
     margin-bottom: 1rem;
     color: var(--primary-color);
