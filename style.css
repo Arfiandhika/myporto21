@@ -282,6 +282,19 @@ section {
     position: relative;
 }
 
+.section-title-separtion-1 {
+    font-size: 2rem;
+    margin-bottom: 2rem;
+    color: var(--primary-color);
+}
+
+.section-title-separtion-2 {
+    font-size: 2rem;
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+    color: var(--primary-color);
+}
+
 .section-title::after {
     content: '';
     display: block;
@@ -290,6 +303,7 @@ section {
     background: var(--primary-color);
     margin: 20px auto;
 }
+
 
 /* About Section */
 .about {
