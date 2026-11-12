@@ -438,6 +438,68 @@ section {
     gap: 1rem;
 }
 
+/* Project Wheel: cards sit on a horizontal cylinder and roll left/right */
+.projects-grid.wheel {
+    --step: 40deg;              /* angle between neighbouring cards */
+    --r: min(560px, 75vw);      /* wheel radius: bigger = flatter curve */
+    grid-template-columns: 1fr;
+    perspective: 1400px;
+    overflow-x: clip;           /* rotated cards never cause page scroll */
+    padding: 1rem 0;
+    touch-action: pan-y;        /* horizontal swipe is handled in JS */
+    user-select: none;
+    outline: none;
+}
+
+.wheel .project-card,
+.wheel .project-card:hover {
+    grid-area: 1 / 1;           /* stack every card in the same cell */
+    justify-self: center;
+    width: min(380px, 80vw);
+    transform: translateZ(calc(var(--r) * -1)) rotateY(calc(var(--d, 0) * var(--step))) translateZ(var(--r));
+    transition: transform 0.6s cubic-bezier(0.22, 0.8, 0.3, 1), opacity 0.6s;
+    will-change: transform;
+}
+
+.wheel .project-card:not(.is-active) {
+    opacity: 0.5;
+    cursor: pointer;
+}
+
+.wheel .project-card.is-active {
+    border-color: var(--primary-color);
+    box-shadow: 0 10px 40px rgba(0, 217, 255, 0.2);
+}
+
+/* Cards behind the wheel, or wrapping to the other side, stay hidden */
+.wheel .project-card.is-far,
+.wheel .project-card.jump {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.wheel .project-card.jump {
+    transition: none;
+}
+
+.wheel-hint {
+    text-align: center;
+    margin-top: 1rem;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}
+
+.wheel-hint i {
+    color: var(--primary-color);
+    margin-right: 0.4rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .wheel .project-card {
+        transition: none;
+    }
+}
+
 /* Contact Section */
 .contact {
     background: var(--darker-bg);

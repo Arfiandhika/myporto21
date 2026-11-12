@@ -62,6 +62,105 @@ window.addEventListener('load', () => {
     setTimeout(typeWriter, 500);
 });
 
+// Project Wheel: cards roll left/right on a horizontal cylinder
+document.querySelectorAll('.projects-grid').forEach(grid => {
+    const cards = [...grid.querySelectorAll('.project-card')];
+    const n = cards.length;
+    if (!n) return;
+
+    grid.classList.add('wheel');
+    grid.tabIndex = 0;
+    let active = 0;
+    let dragged = false;
+
+    function render() {
+        cards.forEach((card, i) => {
+            // Signed distance from the front card, wrapping around
+            let d = (i - active + n) % n;
+            if (d > n / 2) d -= n;
+
+            const prev = Number(card.style.getPropertyValue('--d') || d);
+            if (Math.abs(d - prev) > 1) {
+                // Wrapping card: snap to the other side hidden, then fade in
+                card.classList.add('jump');
+                card.style.setProperty('--d', d);
+                void card.offsetWidth;
+                card.classList.remove('jump');
+            } else {
+                card.style.setProperty('--d', d);
+            }
+
+            card.style.zIndex = n - Math.abs(d);
+            card.classList.toggle('is-active', d === 0);
+            card.classList.toggle('is-far', Math.abs(d) > 1);
+        });
+    }
+
+    const go = step => {
+        active = (active + step + n) % n;
+        render();
+    };
+
+    render();
+    if (n < 2) return; // one card: same wheel look, nothing to roll yet
+
+    // Swipe / drag
+    let startX = null;
+    grid.addEventListener('pointerdown', e => {
+        startX = e.clientX;
+        dragged = false;
+    });
+    grid.addEventListener('pointerup', e => {
+        if (startX === null) return;
+        const dx = e.clientX - startX;
+        startX = null;
+        if (Math.abs(dx) > 40) {
+            dragged = true;
+            go(dx < 0 ? 1 : -1);
+        }
+    });
+
+    // Clicking a side card brings it to the front (instead of opening its link)
+    cards.forEach((card, i) => card.addEventListener('click', e => {
+        if (dragged || !card.classList.contains('is-active')) {
+            e.preventDefault();
+            if (!dragged) {
+                active = i;
+                render();
+            }
+        }
+    }));
+
+    // Touchpad horizontal swipe / Shift + mouse wheel
+    let acc = 0, locked = false, quiet;
+    grid.addEventListener('wheel', e => {
+        const horizontal = Math.abs(e.deltaX) > Math.abs(e.deltaY);
+        if (!horizontal && !e.shiftKey) return; // plain vertical scroll still scrolls the page
+        e.preventDefault();
+
+        // One gesture = one turn: unlock only after the scrolling goes quiet
+        clearTimeout(quiet);
+        quiet = setTimeout(() => { locked = false; acc = 0; }, 200);
+        if (locked) return;
+
+        acc += horizontal ? e.deltaX : e.deltaY;
+        if (Math.abs(acc) > 30) {
+            locked = true;
+            go(acc > 0 ? 1 : -1);
+        }
+    }, { passive: false });
+
+    // Small usage hint under the wheel
+    grid.insertAdjacentHTML('afterend',
+        '<p class="wheel-hint"><i class="fas fa-arrows-left-right"></i> Swipe, drag, or Click</p>');
+
+    // Arrow keys when the wheel is focused
+    grid.addEventListener('keydown', e => {
+        if (e.key === 'ArrowRight') go(1);
+        if (e.key === 'ArrowLeft') go(-1);
+    });
+});
+
 // Intersection Observer for Fade-in Animation
 const observerOptions = {
     threshold: 0.1,
@@ -78,7 +177,8 @@ const observer = new IntersectionObserver(function(entries) {
 }, observerOptions);
 
 // Observe all sections and cards
-document.querySelectorAll('section, .skill-card, .project-card').forEach(element => {
+// (wheel cards are skipped: their transform is controlled by the wheel)
+document.querySelectorAll('section, .skill-card, .projects-grid:not(.wheel) .project-card').forEach(element => {
     element.style.opacity = '0';
     element.style.transform = 'translateY(30px)';
     element.style.transition = 'opacity 0.8s ease, transform 0.8s ease';
@@ -146,7 +246,7 @@ if (terminalBody) {
 }
 
 // Project Cards Hover Effect Enhancement
-const projectCards = document.querySelectorAll('.project-card');
+const projectCards = document.querySelectorAll('.projects-grid:not(.wheel) .project-card');
 projectCards.forEach(card => {
     card.addEventListener('mouseenter', function() {
         this.style.transform = 'translateY(-10px) scale(1.02)';
